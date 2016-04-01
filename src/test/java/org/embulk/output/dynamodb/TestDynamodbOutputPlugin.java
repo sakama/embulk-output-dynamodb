@@ -1,9 +1,6 @@
 package org.embulk.output.dynamodb;
 
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -25,12 +22,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeNotNull;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestDynamodbOutputPlugin
 {
