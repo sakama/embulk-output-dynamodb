@@ -20,13 +20,13 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.8.2"
-    provided "org.embulk:embulk-core:0.8.2"
+    compile  "org.embulk:embulk-core:0.8.8"
+    provided "org.embulk:embulk-core:0.8.8"
     compile "com.amazonaws:aws-java-sdk-dynamodb:1.10.50"
 
     testCompile "junit:junit:4.+"
-    testCompile "org.embulk:embulk-core:0.8.2:tests"
-    testCompile "org.embulk:embulk-standards:0.8.2"
+    testCompile "org.embulk:embulk-core:0.8.8:tests"
+    testCompile "org.embulk:embulk-standards:0.8.8"
 }
 
 task classpath(type: Copy, dependsOn: ["jar"]) {
@@ -53,7 +53,7 @@ task checkstyle(type: Checkstyle) {
     source = sourceSets.main.allJava + sourceSets.test.allJava
 }
 
-task gem(type: JRubyExec, dependsOn: ["build", "gemspec", "classpath"]) {
+task gem(type: JRubyExec, dependsOn: ["assemble", "gemspec", "classpath"]) {
     jrubyArgs "-rrubygems/gem_runner", "-eGem::GemRunner.new.run(ARGV)", "build"
     script "build/gemspec"
     doLast { ant.move(file: "${project.name}-${project.version}.gem", todir: "pkg") }

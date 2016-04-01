@@ -79,6 +79,24 @@ public class DynamodbOutputPlugin
         @Config("max_put_items")
         @ConfigDefault("25")
         int getMaxPutItems();
+
+        @Config("endpoint")
+        @ConfigDefault("null")
+        Optional<String> getEndpoint();
+
+        @Config("primary_key")
+        String getPrimaryKey();
+
+        @Config("primary_key_type")
+        String getPrimaryKeyType();
+
+        @Config("sort_key")
+        @ConfigDefault("null")
+        Optional<String> getSortKey();
+
+        @Config("sort_key_type")
+        @ConfigDefault("null")
+        Optional<String> getSortKeyType();
     }
 
     private final Logger log;
