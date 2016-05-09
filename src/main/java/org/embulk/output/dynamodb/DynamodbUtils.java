@@ -249,7 +249,7 @@ public class DynamodbUtils
         if (isNeedChange) {
             table.updateTable(throughput);
             log.info(String.format("Updated Provisioned Throughput of table[%s]. read_capacity_unit[%s], write_capacity_unit[%s]",
-                    task.getTable(), writeUnits.orNull(), readUnits.orNull())
+                    task.getTable(), readUnits.orNull(), writeUnits.orNull())
             );
             table.waitForActive();
         }
