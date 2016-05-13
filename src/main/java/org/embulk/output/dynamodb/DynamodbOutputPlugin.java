@@ -85,10 +85,10 @@ public class DynamodbOutputPlugin
         Optional<String> getEndpoint();
 
         @Config("primary_key")
-        String getPrimaryKey();
+        Optional<String> getPrimaryKey();
 
         @Config("primary_key_type")
-        String getPrimaryKeyType();
+        Optional<String> getPrimaryKeyType();
 
         @Config("sort_key")
         @ConfigDefault("null")
@@ -123,7 +123,11 @@ public class DynamodbOutputPlugin
             log.info(String.format("Executing plugin with '%s' mode", task.getMode()));
             task.setTable(dynamoDbUtils.generateTableName(task.getTable()));
             if (task.getAutoCreateTable()) {
-                dynamoDbUtils.createTable(dynamoDB, task);
+                if (task.getPrimaryKey().isPresent() && task.getPrimaryKeyType().isPresent()) {
+                    dynamoDbUtils.createTable(dynamoDB, task);
+                } else {
+                    throw new ConfigException("If auto_create_table is true, both primary_key and primary_key_type is necessary");
+                }
             }
             // Up to raised provisioned value
             dynamoDbUtils.updateTableProvision(dynamoDB, task, true);

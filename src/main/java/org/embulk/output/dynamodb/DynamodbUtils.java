@@ -287,7 +287,7 @@ public class DynamodbUtils
     private ArrayList<KeySchemaElement> getKeySchemaElements(DynamodbOutputPlugin.PluginTask task)
     {
         ArrayList<KeySchemaElement> keySchema = new ArrayList<>();
-        keySchema.add(new KeySchemaElement().withAttributeName(task.getPrimaryKey()).withKeyType(KeyType.HASH));
+        keySchema.add(new KeySchemaElement().withAttributeName(task.getPrimaryKey().get()).withKeyType(KeyType.HASH));
         if (task.getSortKey().isPresent()) {
             String sortKey = task.getSortKey().get();
             keySchema.add(new KeySchemaElement().withAttributeName(sortKey).withKeyType(KeyType.RANGE));
@@ -300,8 +300,8 @@ public class DynamodbUtils
         ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<>();
         attributeDefinitions.add(
                 new AttributeDefinition()
-                        .withAttributeName(task.getPrimaryKey())
-                        .withAttributeType(getAttributeType(task.getPrimaryKeyType())));
+                        .withAttributeName(task.getPrimaryKey().get())
+                        .withAttributeType(getAttributeType(task.getPrimaryKeyType().get())));
         if (task.getSortKey().isPresent()) {
             String sortKey = task.getSortKey().get();
             attributeDefinitions.add(
