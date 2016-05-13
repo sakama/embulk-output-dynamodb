@@ -199,44 +199,12 @@ $ ./gradlew gem  # -t to watch change of files and rebuild continuously
 $ ./gradlew test  # -t to watch change of files and rebuild continuously
 ```
 
-To run unit tests, you need to configure the following environment variables.
-
-When environment variables are not set, skip some test cases.
-
+To run unit tests, you need to setup DynamoDB on your local environment.
+Please reference the documentation [Running DynamoDB on Your Computer](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) on AWS Developer Guide.
 ```
-DYNAMO_REGION
-DYNAMO_TABLE
-DYNAMO_ACCESS_KEY_ID
-DYNAMO_SECRET_ACCESS_KEY
-```
-
-If you're using Mac OS X El Capitan and GUI Applications(IDE), like as follows.
-```xml
-$ vi ~/Library/LaunchAgents/environment.plist
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>my.startup</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>sh</string>
-    <string>-c</string>
-    <string>
-      launchctl setenv DYNAMO_REGION us-west-1
-      launchctl setenv DYNAMO_TABLE dynamotest
-      launchctl setenv DYNAMO_ACCESS_KEY_ID ABCXYZ123ABCXYZ123
-      launchctl setenv DYNAMO_SECRET_ACCESS_KEY ABCXYZ123ABCXYZ123
-    </string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-</dict>
-</plist>
-
-$ launchctl load ~/Library/LaunchAgents/environment.plist
-$ launchctl getenv DYNAMO_REGION //try to get value.
-
-Then start your applications.
+$ mkdir /path/to/dynamodb
+$ cd /path/to/dynamodb
+$ wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz
+$ tar zxvf dynamodb_local_latest.tar.gz
+$ java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
 ```
