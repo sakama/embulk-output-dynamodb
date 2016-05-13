@@ -125,7 +125,8 @@ public class DynamodbOutputPlugin
             if (task.getAutoCreateTable()) {
                 if (task.getPrimaryKey().isPresent() && task.getPrimaryKeyType().isPresent()) {
                     dynamoDbUtils.createTable(dynamoDB, task);
-                } else {
+                }
+                else {
                     throw new ConfigException("If auto_create_table is true, both primary_key and primary_key_type is necessary");
                 }
             }

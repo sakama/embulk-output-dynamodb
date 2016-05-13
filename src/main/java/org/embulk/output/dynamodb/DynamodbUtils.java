@@ -177,7 +177,6 @@ public class DynamodbUtils
     protected void createTable(DynamoDB dynamoDB, DynamodbOutputPlugin.PluginTask task)
             throws InterruptedException
     {
-
         ArrayList<KeySchemaElement> keySchema = getKeySchemaElements(task);
         ArrayList<AttributeDefinition> attributeDefinitions = getAttributeDefinitions(task);
         ProvisionedThroughput provisionedThroughput = new ProvisionedThroughput()
