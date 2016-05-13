@@ -11,10 +11,13 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.dynamodbv2.model.TableDescription;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import com.google.common.base.Optional;
@@ -25,6 +28,7 @@ import org.embulk.spi.Exec;
 import org.jruby.embed.ScriptingContainer;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +52,10 @@ public class DynamodbUtils
                     getCredentialsProvider(task),
                     getClientConfiguration(task)
             ).withRegion(Regions.fromName(task.getRegion()));
+
+            if (task.getEndpoint().isPresent()) {
+                client.setEndpoint(task.getEndpoint().get());
+            }
 
             dynamoDB = new DynamoDB(client);
             dynamoDB.getTable(task.getTable());
@@ -169,9 +177,18 @@ public class DynamodbUtils
     protected void createTable(DynamoDB dynamoDB, DynamodbOutputPlugin.PluginTask task)
             throws InterruptedException
     {
+
+        ArrayList<KeySchemaElement> keySchema = getKeySchemaElements(task);
+        ArrayList<AttributeDefinition> attributeDefinitions = getAttributeDefinitions(task);
+        ProvisionedThroughput provisionedThroughput = new ProvisionedThroughput()
+                .withReadCapacityUnits(task.getReadCapacityUnits().get().getNormal().get())
+                .withWriteCapacityUnits(task.getWriteCapacityUnits().get().getNormal().get());
+
         dynamoDB.createTable(new CreateTableRequest()
                 .withTableName(task.getTable())
-                .withKeySchema()
+                .withKeySchema(keySchema)
+                .withAttributeDefinitions(attributeDefinitions)
+                .withProvisionedThroughput(provisionedThroughput)
         );
 
         Table table = dynamoDB.getTable(task.getTable());
@@ -267,6 +284,48 @@ public class DynamodbUtils
         return jruby.runScriptlet("Time.now.strftime('" + tableName + "')").toString();
     }
 
+    private ArrayList<KeySchemaElement> getKeySchemaElements(DynamodbOutputPlugin.PluginTask task)
+    {
+        ArrayList<KeySchemaElement> keySchema = new ArrayList<>();
+        keySchema.add(new KeySchemaElement().withAttributeName(task.getPrimaryKey().get()).withKeyType(KeyType.HASH));
+        if (task.getSortKey().isPresent()) {
+            String sortKey = task.getSortKey().get();
+            keySchema.add(new KeySchemaElement().withAttributeName(sortKey).withKeyType(KeyType.RANGE));
+        }
+        return keySchema;
+    }
+
+    private ArrayList<AttributeDefinition> getAttributeDefinitions(DynamodbOutputPlugin.PluginTask task)
+    {
+        ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<>();
+        attributeDefinitions.add(
+                new AttributeDefinition()
+                        .withAttributeName(task.getPrimaryKey().get())
+                        .withAttributeType(getAttributeType(task.getPrimaryKeyType().get())));
+        if (task.getSortKey().isPresent()) {
+            String sortKey = task.getSortKey().get();
+            attributeDefinitions.add(
+                    new AttributeDefinition()
+                            .withAttributeName(sortKey)
+                            .withAttributeType(getAttributeType(task.getSortKeyType().get())));
+        }
+        return attributeDefinitions;
+    }
+
+    private ScalarAttributeType getAttributeType(String type)
+    {
+        switch (type.toLowerCase()) {
+            case "string":
+                return ScalarAttributeType.S;
+            case "number":
+                return ScalarAttributeType.N;
+            case "binary":
+                return ScalarAttributeType.B;
+            default:
+                throw new UnknownScalarAttributeTypeException(type + " is invalid key type");
+        }
+    }
+
     public class ConnectionException extends RuntimeException implements UserDataException
     {
         protected ConnectionException()
@@ -279,6 +338,23 @@ public class DynamodbUtils
         }
 
         public ConnectionException(Throwable cause)
+        {
+            super(cause);
+        }
+    }
+
+    public class UnknownScalarAttributeTypeException extends RuntimeException implements UserDataException
+    {
+        protected UnknownScalarAttributeTypeException()
+        {
+        }
+
+        public UnknownScalarAttributeTypeException(String message)
+        {
+            super(message);
+        }
+
+        public UnknownScalarAttributeTypeException(Throwable cause)
         {
             super(cause);
         }

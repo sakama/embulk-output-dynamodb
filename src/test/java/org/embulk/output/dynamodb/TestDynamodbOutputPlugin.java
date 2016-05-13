@@ -1,9 +1,6 @@
 package org.embulk.output.dynamodb;
 
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.ItemCollection;
-import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -25,19 +22,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeNotNull;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestDynamodbOutputPlugin
 {
-    private static String DYNAMO_REGION;
-    private static String DYNAMO_TABLE;
-    private static String DYNAMO_ACCESS_KEY_ID;
-    private static String DYNAMO_SECRET_ACCESS_KEY;
     private static String PATH_PREFIX;
 
     private MockPageOutput pageOutput;
@@ -45,13 +37,6 @@ public class TestDynamodbOutputPlugin
     @BeforeClass
     public static void initializeConstant()
     {
-        DYNAMO_REGION = System.getenv("DYNAMO_REGION") != null ? System.getenv("DYNAMO_REGION") : "";
-        DYNAMO_TABLE = System.getenv("DYNAMO_TABLE") != null ? System.getenv("DYNAMO_TABLE") : "";
-        DYNAMO_ACCESS_KEY_ID = System.getenv("DYNAMO_ACCESS_KEY_ID") != null ? System.getenv("DYNAMO_ACCESS_KEY_ID") : "";
-        DYNAMO_SECRET_ACCESS_KEY = System.getenv("DYNAMO_SECRET_ACCESS_KEY") != null ? System.getenv("DYNAMO_SECRET_ACCESS_KEY") : "";
-
-        assumeNotNull(DYNAMO_REGION, DYNAMO_TABLE, DYNAMO_ACCESS_KEY_ID, DYNAMO_SECRET_ACCESS_KEY);
-
         PATH_PREFIX = DynamodbOutputPlugin.class.getClassLoader().getResource("sample_01.csv").getPath();
     }
 
@@ -88,7 +73,7 @@ public class TestDynamodbOutputPlugin
     {
         ConfigSource config = config();
         DynamodbOutputPlugin.PluginTask task = config.loadConfig(PluginTask.class);
-        assertEquals(DYNAMO_REGION, task.getRegion());
+        assertEquals("us-west-1", task.getRegion());
     }
 
     @Test
@@ -204,11 +189,24 @@ public class TestDynamodbOutputPlugin
                 .set("parser", parserConfig(schemaConfig()))
                 .set("type", "dynamodb")
                 .set("mode", "upsert")
-                .set("region", DYNAMO_REGION)
-                .set("table", DYNAMO_TABLE)
+                .set("region", "us-west-1")
+                .set("table", "dummy")
+                .set("primary_key", "id")
+                .set("primary_key_type", "string")
+                .set("read_capacity_units", capacityUnitConfig())
+                .set("write_capacity_units", capacityUnitConfig())
                 .set("auth_method", "basic")
-                .set("access_key_id", DYNAMO_ACCESS_KEY_ID)
-                .set("secret_access_key", DYNAMO_SECRET_ACCESS_KEY);
+                .set("access_key_id", "dummy")
+                .set("secret_access_key", "dummy")
+                .set("endpoint", "http://localhost:8000");
+    }
+
+    private ImmutableMap<String, Object> capacityUnitConfig()
+    {
+        ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+        builder.put("normal", 5L);
+        builder.put("raise", 8L);
+        return builder.build();
     }
 
     private ImmutableMap<String, Object> inputConfig()

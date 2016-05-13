@@ -79,6 +79,24 @@ public class DynamodbOutputPlugin
         @Config("max_put_items")
         @ConfigDefault("25")
         int getMaxPutItems();
+
+        @Config("endpoint")
+        @ConfigDefault("null")
+        Optional<String> getEndpoint();
+
+        @Config("primary_key")
+        Optional<String> getPrimaryKey();
+
+        @Config("primary_key_type")
+        Optional<String> getPrimaryKeyType();
+
+        @Config("sort_key")
+        @ConfigDefault("null")
+        Optional<String> getSortKey();
+
+        @Config("sort_key_type")
+        @ConfigDefault("null")
+        Optional<String> getSortKeyType();
     }
 
     private final Logger log;
@@ -105,7 +123,11 @@ public class DynamodbOutputPlugin
             log.info(String.format("Executing plugin with '%s' mode", task.getMode()));
             task.setTable(dynamoDbUtils.generateTableName(task.getTable()));
             if (task.getAutoCreateTable()) {
-                dynamoDbUtils.createTable(dynamoDB, task);
+                if (task.getPrimaryKey().isPresent() && task.getPrimaryKeyType().isPresent()) {
+                    dynamoDbUtils.createTable(dynamoDB, task);
+                } else {
+                    throw new ConfigException("If auto_create_table is true, both primary_key and primary_key_type is necessary");
+                }
             }
             // Up to raised provisioned value
             dynamoDbUtils.updateTableProvision(dynamoDB, task, true);
