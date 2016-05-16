@@ -51,6 +51,8 @@
       type: dynamodb
       table: table_%Y_%m
     ```
+- **primary_key** (string, required when use auto_create_table) primary key name
+- **primary_key_type** (string, required when use auto_create_table) primary key type
 - **write_capacity_units** (int optional) Provisioned write capacity units
     - **normal** (int optional) value that will be set after execution
     - **raise** (int optional) value that will be set before execution
@@ -178,6 +180,8 @@ out:
   secret_access_key: ABCXYZ123ABCXYZ123
   auto_create_table: true
   table: dynamotable
+  primary_key: id
+  primary_key_type: Number
   write_capacity_units:
     normal: 5
     raise: 20
