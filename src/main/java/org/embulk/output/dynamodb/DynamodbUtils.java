@@ -213,7 +213,6 @@ public class DynamodbUtils
             throws InterruptedException
     {
         Table table = dynamoDB.getTable(tableName);
-        TableDescription description = null;
         try {
             switch (table.describe().getTableStatus()) {
                 case "CREATING":
