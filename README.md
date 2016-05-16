@@ -205,7 +205,7 @@ $ ./gradlew test  # -t to watch change of files and rebuild continuously
 
 To run unit tests, you need to setup DynamoDB on your local environment.
 Please reference the documentation [Running DynamoDB on Your Computer](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) on AWS Developer Guide.
-```
+```shell-session
 $ mkdir /path/to/dynamodb
 $ cd /path/to/dynamodb
 $ wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz
