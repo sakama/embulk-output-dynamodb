@@ -177,6 +177,11 @@ public class DynamodbUtils
     protected void createTable(DynamoDB dynamoDB, DynamodbOutputPlugin.PluginTask task)
             throws InterruptedException
     {
+        String tableName = task.getTable();
+        if (isExistsTable(dynamoDB, tableName)) {
+            log.info("Table[{}] is already exists", tableName);
+            return;
+        }
         ArrayList<KeySchemaElement> keySchema = getKeySchemaElements(task);
         ArrayList<AttributeDefinition> attributeDefinitions = getAttributeDefinitions(task);
         ProvisionedThroughput provisionedThroughput = new ProvisionedThroughput()
@@ -184,15 +189,15 @@ public class DynamodbUtils
                 .withWriteCapacityUnits(task.getWriteCapacityUnits().get().getNormal().get());
 
         dynamoDB.createTable(new CreateTableRequest()
-                .withTableName(task.getTable())
+                .withTableName(tableName)
                 .withKeySchema(keySchema)
                 .withAttributeDefinitions(attributeDefinitions)
                 .withProvisionedThroughput(provisionedThroughput)
         );
 
-        Table table = dynamoDB.getTable(task.getTable());
+        Table table = dynamoDB.getTable(tableName);
         table.waitForActive();
-        log.info(String.format("Created table '%s'", task.getTable()));
+        log.info("Created table[{}]", tableName);
     }
 
     protected void deleteTable(DynamoDB dynamoDB, String tableName)
@@ -208,7 +213,6 @@ public class DynamodbUtils
             throws InterruptedException
     {
         Table table = dynamoDB.getTable(tableName);
-        TableDescription description = null;
         try {
             switch (table.describe().getTableStatus()) {
                 case "CREATING":

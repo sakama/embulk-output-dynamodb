@@ -85,9 +85,11 @@ public class DynamodbOutputPlugin
         Optional<String> getEndpoint();
 
         @Config("primary_key")
+        @ConfigDefault("null")
         Optional<String> getPrimaryKey();
 
         @Config("primary_key_type")
+        @ConfigDefault("null")
         Optional<String> getPrimaryKeyType();
 
         @Config("sort_key")
