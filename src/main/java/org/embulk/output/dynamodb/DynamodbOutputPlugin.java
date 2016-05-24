@@ -125,12 +125,7 @@ public class DynamodbOutputPlugin
             log.info(String.format("Executing plugin with '%s' mode", task.getMode()));
             task.setTable(dynamoDbUtils.generateTableName(task.getTable()));
             if (task.getAutoCreateTable()) {
-                if (task.getPrimaryKey().isPresent() && task.getPrimaryKeyType().isPresent()) {
-                    dynamoDbUtils.createTable(dynamoDB, task);
-                }
-                else {
-                    throw new ConfigException("If auto_create_table is true, both primary_key and primary_key_type is necessary");
-                }
+                dynamoDbUtils.createTable(dynamoDB, task);
             }
             // Up to raised provisioned value
             dynamoDbUtils.updateTableProvision(dynamoDB, task, true);

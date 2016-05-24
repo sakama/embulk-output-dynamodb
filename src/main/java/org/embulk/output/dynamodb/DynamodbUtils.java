@@ -106,6 +106,12 @@ public class DynamodbUtils
                 throw new ConfigException("'update_expression' is required when update mode");
             }
         }
+
+        if (task.getAutoCreateTable()) {
+            if (!task.getPrimaryKey().isPresent() || !task.getPrimaryKeyType().isPresent()) {
+                throw new ConfigException("If auto_create_table is true, both primary_key and primary_key_type is necessary");
+            }
+        }
     }
 
     protected void batchWriteItem(DynamoDB dynamoDB, TableWriteItems items)
