@@ -78,7 +78,7 @@ Gem::Specification.new do |spec|
   spec.description   = %[Dumps records to AWS DynamoDB.]
   spec.email         = ["satoshiakama@gmail.com"]
   spec.licenses      = ["Apache-2.0"]
-  # TODO set this: spec.homepage      = "https://github.com/sakama/embulk-output-dynamodb"
+  spec.homepage      = "https://github.com/sakama/embulk-output-dynamodb"
 
   spec.files         = `git ls-files`.split("\n") + Dir["classpath/*.jar"]
   spec.test_files    = spec.files.grep(%r"^(test|spec)/")
