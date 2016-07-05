@@ -1,4 +1,5 @@
 # AWS DynamoDB output plugin for Embulk
+[![Build Status](https://travis-ci.org/sakama/embulk-output-dynamodb.svg?branch=master)](https://travis-ci.org/sakama/embulk-output-dynamodb)
 
 [Embulk](http://www.embulk.org/) output plugin to load/insert data into [AWS DynamoDB](http://aws.amazon.com/dynamodb/)
 
