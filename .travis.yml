@@ -1,0 +1,23 @@
+language: java
+
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk7
+
+install:
+  - mkdir ./dynamodb
+  - cd ./dynamodb
+  - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest.tar.gz
+  - tar zxvf dynamodb_local_latest.tar.gz
+  - java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb &
+  - cd ../
+
+before_script:
+  - echo "Wait DynamoDB wakeup"
+  - sleep 10
+  - date
+
+script:
+  - ./gradlew gem
+  - ./gradlew --info check jacocoTestReport
