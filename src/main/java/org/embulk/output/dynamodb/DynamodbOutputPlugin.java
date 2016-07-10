@@ -20,6 +20,7 @@ import org.embulk.config.TaskReport;
 import org.embulk.config.TaskSource;
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
+import org.embulk.spi.DataException;
 import org.embulk.spi.Exec;
 import org.embulk.spi.OutputPlugin;
 import org.embulk.spi.Page;
@@ -335,7 +336,7 @@ public class DynamodbOutputPlugin
                             } else if (value.isNilValue()) {
                                 return null;
                             }
-                            throw new RuntimeException("UnSupported Type");
+                            throw new DataException("Record has invalid json column value");
                         }
                     });
 
