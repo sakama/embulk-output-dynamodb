@@ -111,6 +111,9 @@ public class DynamodbUtils
             if (!task.getPrimaryKey().isPresent() || !task.getPrimaryKeyType().isPresent()) {
                 throw new ConfigException("If auto_create_table is true, both primary_key and primary_key_type is necessary");
             }
+            if (!task.getReadCapacityUnits().isPresent() || !task.getWriteCapacityUnits().isPresent()) {
+                throw new ConfigException("If auto_create_table is true, 'read_capacity_units' and 'write_capacity_units' is required.");
+            }
         }
     }
 
