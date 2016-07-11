@@ -1,6 +1,10 @@
 package org.embulk.output.dynamodb;
 
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -22,9 +26,15 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.msgpack.value.Value;
+import org.msgpack.value.ValueFactory;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -134,39 +144,65 @@ public class TestDynamodbOutputPlugin
         });
         TransactionalPageOutput output = plugin.open(task.dump(), schema, 0);
 
-        List<Page> pages = PageTestUtils.buildPage(runtime.getBufferAllocator(), schema, 1L, 32864L, "2015-01-27T19:23:49", "2015-01-27T00:00:00",  true, 123.45, "embulk");
+        Map<Value, Value> map = new LinkedHashMap<>();
+        map.put(ValueFactory.newString("foo"), ValueFactory.newString("bar"));
+        map.put(ValueFactory.newString("key1"), ValueFactory.newString("val1"));
+        List<Page> pages = PageTestUtils.buildPage(runtime.getBufferAllocator(), schema,
+                1L,
+                32864L,
+                1L,
+                1L,
+                true,
+                123.45,
+                "embulk",
+                ValueFactory.newArray(ValueFactory.newInteger(1), ValueFactory.newInteger(2), ValueFactory.newInteger(3), ValueFactory.newArray(ValueFactory.newString("inner"))),
+                ValueFactory.newMap(map)
+        );
         assertEquals(1, pages.size());
         for (Page page : pages) {
             output.add(page);
         }
 
-//        output.finish();
-//        output.commit();
-//
-//        DynamodbUtils dynamoDbUtils = new DynamodbUtils();
-//        DynamoDB dynamoDB = null;
-//        try {
-//            dynamoDB = dynamoDbUtils.createDynamoDB(task);
-//
-//            Table table = dynamoDB.getTable(task.getTable());
-//            ItemCollection<ScanOutcome> items = table.scan();
-//
-//            while (items.iterator().hasNext()) {
-//                Map<String, Object> item = items.iterator().next().asMap();
-//                assertEquals(1, item.get("id"));
-//                assertEquals(32864, item.get("account"));
-//                assertEquals("2015-01-27T19:23:49", item.get("time"));
-//                assertEquals("2015-01-27T00:00:00", item.get("purchase"));
-//                assertEquals(true, item.get("flg"));
-//                assertEquals(123.45, item.get("score"));
-//                assertEquals("embulk", item.get("comment"));
-//            }
-//        }
-//        finally {
-//            if (dynamoDB != null) {
-//                dynamoDB.shutdown();
-//            }
-//        }
+        output.finish();
+        output.commit();
+
+        DynamodbUtils dynamoDbUtils = new DynamodbUtils();
+        DynamoDB dynamoDB = null;
+        try {
+            dynamoDB = dynamoDbUtils.createDynamoDB(task);
+
+            Table table = dynamoDB.getTable(task.getTable());
+            ItemCollection<ScanOutcome> items = table.scan();
+
+            for (Item item1 : items) {
+                assertEquals(1L, item1.getLong("id"));
+                assertEquals(32864L, item1.getLong("account"));
+                assertEquals("1970-01-01 00:00:01 UTC", item1.getString("time"));
+                assertEquals("1970-01-01 00:00:01 UTC", item1.getString("purchase"));
+                assertEquals(true, item1.getBoolean("flg"));
+                assertEquals(new BigDecimal("123.45"), item1.get("score"));
+                assertEquals("embulk", item1.getString("comment"));
+
+                List<Object> list = new ArrayList<>();
+                List<Object> inner = new ArrayList<>();
+                inner.add("inner");
+                list.add(new BigDecimal(1));
+                list.add(new BigDecimal(2));
+                list.add(new BigDecimal(3));
+                list.add(inner);
+                assertEquals(list, item1.getList("list"));
+
+                Map<String, Object> expectedMap = new LinkedHashMap<>();
+                expectedMap.put("foo", "bar");
+                expectedMap.put("key1", "val1");
+                assertEquals(expectedMap, item1.getMap("map"));
+            }
+        }
+        finally {
+            if (dynamoDB != null) {
+                dynamoDB.shutdown();
+            }
+        }
     }
 
     @Test
@@ -192,7 +228,7 @@ public class TestDynamodbOutputPlugin
                 .set("region", "us-west-1")
                 .set("table", "dummy")
                 .set("primary_key", "id")
-                .set("primary_key_type", "string")
+                .set("primary_key_type", "number")
                 .set("read_capacity_units", capacityUnitConfig())
                 .set("write_capacity_units", capacityUnitConfig())
                 .set("auth_method", "basic")
@@ -244,6 +280,8 @@ public class TestDynamodbOutputPlugin
         builder.add(ImmutableMap.of("name", "flg", "type", "boolean"));
         builder.add(ImmutableMap.of("name", "score", "type", "double"));
         builder.add(ImmutableMap.of("name", "comment", "type", "string"));
+        builder.add(ImmutableMap.of("name", "list", "type", "json"));
+        builder.add(ImmutableMap.of("name", "map", "type", "json"));
         return builder.build();
     }
 }

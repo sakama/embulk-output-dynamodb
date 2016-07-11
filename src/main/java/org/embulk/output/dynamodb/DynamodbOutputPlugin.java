@@ -20,16 +20,24 @@ import org.embulk.config.TaskReport;
 import org.embulk.config.TaskSource;
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
+import org.embulk.spi.DataException;
 import org.embulk.spi.Exec;
 import org.embulk.spi.OutputPlugin;
 import org.embulk.spi.Page;
 import org.embulk.spi.PageReader;
 import org.embulk.spi.Schema;
 import org.embulk.spi.TransactionalPageOutput;
+import org.msgpack.value.BooleanValue;
+import org.msgpack.value.FloatValue;
+import org.msgpack.value.IntegerValue;
+import org.msgpack.value.Value;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class DynamodbOutputPlugin
         implements OutputPlugin
@@ -285,13 +293,50 @@ public class DynamodbOutputPlugin
                                 addNullValue(column.getName());
                             }
                             else {
-                                item.withJSON(column.getName(), pageReader.getJson(column).toString());
+                                Value jsonValue = pageReader.getJson(column);
+                                if (jsonValue.isArrayValue()) {
+                                    List<Object> list = new ArrayList<Object>();
+                                    for (Value v : jsonValue.asArrayValue()) {
+                                        list.add(getRawFromValue(v));
+                                    }
+                                    item.withList(column.getName(), list);
+                                } else {
+                                    item.withJSON(column.getName(), jsonValue.toJson());
+                                }
                             }
                         }
 
                         private void addNullValue(String name)
                         {
                             item.withNull(name);
+                        }
+
+                        private Object getRawFromValue(Value value)
+                        {
+                            if (value.isBooleanValue()) {
+                                return ((BooleanValue)value).getBoolean();
+                            } else if (value.isStringValue()) {
+                                return value.toString();
+                            } else if (value.isIntegerValue()) {
+                                return ((IntegerValue)value).asLong();
+                            } else if (value.isFloatValue()) {
+                                return ((FloatValue)value).toDouble();
+                            } else if (value.isArrayValue()) {
+                                List<Object> list = new ArrayList<>();
+                                for (Value v : value.asArrayValue()) {
+                                    list.add(getRawFromValue(v));
+                                }
+                                return list;
+                            } else if (value.isMapValue()) {
+                                Map<String, Object> map = new LinkedHashMap<>();
+                                for (Map.Entry<Value, Value> entry : value.asMapValue().entrySet()) {
+                                    map.put(entry.getKey().toString(), getRawFromValue(entry.getValue()));
+                                }
+                                return map;
+                            } else if (value.isNilValue()) {
+                                return null;
+                            }
+                            throw new DataException("Record has invalid json column value");
                         }
                     });
 
