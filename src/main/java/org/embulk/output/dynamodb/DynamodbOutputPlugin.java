@@ -300,7 +300,8 @@ public class DynamodbOutputPlugin
                                         list.add(getRawFromValue(v));
                                     }
                                     item.withList(column.getName(), list);
-                                } else {
+                                }
+                                else {
                                     item.withJSON(column.getName(), jsonValue.toJson());
                                 }
                             }
@@ -314,26 +315,32 @@ public class DynamodbOutputPlugin
                         private Object getRawFromValue(Value value)
                         {
                             if (value.isBooleanValue()) {
-                                return ((BooleanValue)value).getBoolean();
-                            } else if (value.isStringValue()) {
+                                return ((BooleanValue) value).getBoolean();
+                            }
+                            else if (value.isStringValue()) {
                                 return value.toString();
-                            } else if (value.isIntegerValue()) {
-                                return ((IntegerValue)value).asLong();
-                            } else if (value.isFloatValue()) {
-                                return ((FloatValue)value).toDouble();
-                            } else if (value.isArrayValue()) {
+                            }
+                            else if (value.isIntegerValue()) {
+                                return ((IntegerValue) value).asLong();
+                            }
+                            else if (value.isFloatValue()) {
+                                return ((FloatValue) value).toDouble();
+                            }
+                            else if (value.isArrayValue()) {
                                 List<Object> list = new ArrayList<>();
                                 for (Value v : value.asArrayValue()) {
                                     list.add(getRawFromValue(v));
                                 }
                                 return list;
-                            } else if (value.isMapValue()) {
+                            }
+                            else if (value.isMapValue()) {
                                 Map<String, Object> map = new LinkedHashMap<>();
                                 for (Map.Entry<Value, Value> entry : value.asMapValue().entrySet()) {
                                     map.put(entry.getKey().toString(), getRawFromValue(entry.getValue()));
                                 }
                                 return map;
-                            } else if (value.isNilValue()) {
+                            }
+                            else if (value.isNilValue()) {
                                 return null;
                             }
                             throw new DataException("Record has invalid json column value");
