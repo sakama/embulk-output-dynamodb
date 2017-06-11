@@ -143,17 +143,34 @@ public class DynamodbUtils
         }
     }
 
-    protected void updateItem(DynamoDB dynamoDB, String tableName, Item item, String primaryKey, Optional<String> expression)
+    protected void updateItem(DynamoDB dynamoDB, String tableName, Item item, List primaryKeyelements, Optional<String> expression)
     {
-        Object primaryKeyValue = null;
+        String hashKeyname = null;
+        String rangeKeyname = null;
+        Object hashKeyValue = null;
+        Object rangeKeyValue = null;
         Map<String, String> attributeNames = new HashMap<>();
         Map<String, Object> attributeValues = new HashMap<>();
+
+        Iterator it = primaryKeyelements.iterator();
+        while (it.hasNext()) {
+            KeySchemaElement element = (KeySchemaElement) it.next();
+            if (element.getKeyType().equals(KeyType.HASH.toString())) {
+                hashKeyname = element.getAttributeName();
+            }
+            else if (element.getKeyType().equals(KeyType.RANGE.toString())) {
+                rangeKeyname = element.getAttributeName();
+            }
+        }
 
         Map<String, Object> itemMap = item.asMap();
         for (Map.Entry<String, Object> e : itemMap.entrySet()) {
             String keyName = e.getKey();
-            if (keyName.equals(primaryKey)) {
-                primaryKeyValue = e.getValue();
+            if (keyName.equals(hashKeyname)) {
+                hashKeyValue = e.getValue();
+            }
+            else if (keyName.equals(rangeKeyname)) {
+                rangeKeyValue = e.getValue();
             }
             else {
                 if (expression.get().indexOf(keyName) > 0) {
@@ -164,9 +181,17 @@ public class DynamodbUtils
         }
         log.debug("attribute names: " + attributeNames.toString());
         log.debug("attribute values: " + attributeValues.toString());
-        log.debug(String.format("primary key %s:%s", primaryKey, primaryKeyValue));
+
         Table table = dynamoDB.getTable(tableName);
-        table.updateItem(primaryKey, primaryKeyValue, expression.get(), attributeNames, attributeValues);
+
+        log.debug(String.format("hash key %s:%s", hashKeyname, hashKeyValue));
+        if (rangeKeyValue == null) {
+            table.updateItem(hashKeyname, hashKeyValue, expression.get(), attributeNames, attributeValues);
+        }
+        else {
+            log.debug(String.format("range key %s:%s", rangeKeyname, rangeKeyValue));
+            table.updateItem(hashKeyname, hashKeyValue, rangeKeyname, rangeKeyValue, expression.get(), attributeNames, attributeValues);
+        }
     }
 
     protected String getPrimaryKeyName(DynamoDB dynamoDB, String tableName)
@@ -178,9 +203,20 @@ public class DynamodbUtils
         String primaryKey = null;
         while (schema.hasNext()) {
             KeySchemaElement element = schema.next();
-            primaryKey = element.getAttributeName();
+            if (element.getKeyType().equals(KeyType.HASH.toString())) {
+                primaryKey = element.getAttributeName();
+            }
         }
         return primaryKey;
+    }
+
+    protected List getPrimaryKey(DynamoDB dynamoDB, String tableName)
+    {
+        log.debug("getPrimaryKey() called");
+        Table table = dynamoDB.getTable(tableName);
+        TableDescription description = table.describe();
+        List<KeySchemaElement>  keyelements = description.getKeySchema();
+        return keyelements;
     }
 
     protected void createTable(DynamoDB dynamoDB, DynamodbOutputPlugin.PluginTask task)
