@@ -210,7 +210,7 @@ public class DynamodbOutputPlugin
             this.table = task.getTable();
             this.mode = task.getMode();
             this.updateExpression = task.getUpdateExpression();
-            this.primaryKeyElements= (mode.equals(Mode.UPSERT_WITH_EXPRESSION)) ? dynamodbUtils.getPrimaryKey(dynamoDB, table) : null;
+            this.primaryKeyElements = (mode.equals(Mode.UPSERT_WITH_EXPRESSION)) ? dynamodbUtils.getPrimaryKey(dynamoDB, table) : null;
             this.maxPutItems = task.getMaxPutItems();
         }
 
