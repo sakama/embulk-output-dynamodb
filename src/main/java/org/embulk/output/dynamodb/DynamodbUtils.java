@@ -212,7 +212,6 @@ public class DynamodbUtils
 
     protected List getPrimaryKey(DynamoDB dynamoDB, String tableName)
     {
-        log.debug("getPrimaryKey() called");
         Table table = dynamoDB.getTable(tableName);
         TableDescription description = table.describe();
         List<KeySchemaElement>  keyelements = description.getKeySchema();
