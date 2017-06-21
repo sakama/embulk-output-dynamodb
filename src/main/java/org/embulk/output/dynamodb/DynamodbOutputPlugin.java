@@ -199,7 +199,7 @@ public class DynamodbOutputPlugin
         private final String table;
         private final Mode mode;
         private final Optional<String> updateExpression;
-        private final String primaryKey;
+        private final List primaryKeyElements;
         private final int maxPutItems;
 
         public DynamodbPageOutput(PluginTask task, DynamoDB dynamoDB)
@@ -210,7 +210,7 @@ public class DynamodbOutputPlugin
             this.table = task.getTable();
             this.mode = task.getMode();
             this.updateExpression = task.getUpdateExpression();
-            this.primaryKey = (mode.equals(Mode.UPSERT_WITH_EXPRESSION)) ? dynamodbUtils.getPrimaryKeyName(dynamoDB, table) : null;
+            this.primaryKeyElements = (mode.equals(Mode.UPSERT_WITH_EXPRESSION)) ? dynamodbUtils.getPrimaryKey(dynamoDB, table) : null;
             this.maxPutItems = task.getMaxPutItems();
         }
 
@@ -400,7 +400,7 @@ public class DynamodbOutputPlugin
         public void updateItem(Item item)
         {
             try {
-                dynamodbUtils.updateItem(dynamoDB, table, item, primaryKey, updateExpression);
+                dynamodbUtils.updateItem(dynamoDB, table, item, primaryKeyElements, updateExpression);
                 totalWroteItemSize++;
                 if (totalWroteItemSize % 1000 == 0) {
                     log.info(String.format("Updated %s items", totalWroteItemSize));
