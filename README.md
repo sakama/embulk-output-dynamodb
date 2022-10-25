@@ -115,7 +115,7 @@
 
 - **instance**
     
-    Use EC2 instance profile
+    Use ECS task role or EC2 instance profile.
     
     ```yaml
     auth_method: instance
