@@ -22,7 +22,7 @@ targetCompatibility = 1.7
 dependencies {
     compile  "org.embulk:embulk-core:0.8.8"
     provided "org.embulk:embulk-core:0.8.8"
-    compile "com.amazonaws:aws-java-sdk-dynamodb:1.10.50"
+    compile "com.amazonaws:aws-java-sdk-dynamodb:1.11.16"
 
     testCompile "junit:junit:4.+"
     testCompile "org.embulk:embulk-core:0.8.8:tests"

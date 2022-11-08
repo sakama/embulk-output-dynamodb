@@ -7,8 +7,8 @@ import com.amazonaws.auth.AWSSessionCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper;
 import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.auth.SystemPropertiesCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfilesConfigFile;
@@ -85,7 +85,7 @@ public abstract class AwsCredentials
                 reject(task.getSessionToken(), "session_token");
                 reject(task.getProfileFile(), "profile_file");
                 reject(task.getProfileName(), "profile_name");
-                return new InstanceProfileCredentialsProvider();
+                return new EC2ContainerCredentialsProviderWrapper();
 
             case "profile":
             {
