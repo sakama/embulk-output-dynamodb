@@ -1,6 +1,6 @@
 ## 0.1.5 - 2022-11-09
 
-[new feature] Support both ECS task role and EC2 instance profile in auth_method 'instance' [#10](https://github.com/sakama/embulk-output-dynamodb/pull/12) @grass-fed thanks!
+[new feature] Support both ECS task role and EC2 instance profile in auth_method 'instance' [#12](https://github.com/sakama/embulk-output-dynamodb/pull/12) @grass-fed thanks!
 
 ## 0.1.4 - 2017-06-21
 
